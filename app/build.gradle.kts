@@ -1,6 +1,12 @@
+import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.findKaptConfiguration
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("io.realm.kotlin")
+    id("kotlin-kapt")
+    id("dagger.hilt.android.plugin")
+    // id("com.google.gms.google-services")
 }
 
 android {
@@ -30,17 +36,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility =  JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.3.1"
     }
     packaging {
         resources {
@@ -66,4 +72,59 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // compose navigation
+    implementation("androidx.navigation:navigation-compose:2.5.3")
+
+    //firebase
+    implementation("com.google.firebase:firebase-auth-ktx:21.1.0")
+    implementation("com.google.firebase:firebase-storage-ktx:20.2.1")
+
+    // room
+    implementation("androidx.room:room-runtime:2.4.3")
+    findKaptConfiguration("androidx.room:room-compiler:2.4.3")
+    implementation("androidx.room:room-ktx:2.4.3")
+
+    // runtime compose
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+    // splash api
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
+    //mongo db realm
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-native-mt") {
+        version { strictly("1.6.0-native-mt") }
+    }
+    implementation("io.realm.kotlin:library-sync:1.0.2")
+
+    // dagger hilt
+    implementation("com.google.dagger:hilt-android:2.44.2")
+    kapt("com.google.dagger:hilt-compiler:2.44.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+    // google auth
+    // implementation(:com.google.android.gms:play-services-auth:20.4.0")
+
+    //coil
+    implementation("io.coil-kt:coil-compose:2.2.2")
+
+    // pager accompanist
+    implementation("com.google.accompanist:accompanist-pager:0.27.0")
+
+    // date-time picker
+    implementation("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
+
+    // message bar compose
+    implementation("com.github.stevdza-san:MessageBarCompose:1.0.5")
+
+    // one tap compose
+    implementation("com.github.stevdza-san:OneTapCompose:1.0.0")
+
+    // desugar jdk
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.2.0")
+
+
+
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
+
 }
