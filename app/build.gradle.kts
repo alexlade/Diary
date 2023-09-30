@@ -123,8 +123,6 @@ dependencies {
     // desugar jdk
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.2.0")
 
-
-
+    // fixes issue with duplicate classes
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
-
 }
