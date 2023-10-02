@@ -2,7 +2,7 @@
 <resources>
     <style name="Theme.DiaryApp.Splashscreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#FFFBFE</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/icons8_book_64</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
         <item name="postSplashScreenTheme">@style/Theme.DiaryApp</item>
     </style>
 </resources>
