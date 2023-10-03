@@ -16,10 +16,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.alexlade.diaryapp.R
 import com.alexlade.diaryapp.presentation.components.GoogleButton
-import java.nio.file.WatchEvent
 
 @Composable
-fun AuthenticationContent(
+fun LoginContent(
     loadingState: Boolean,
     onClick: () -> Unit,
 ) {

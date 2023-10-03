@@ -15,7 +15,7 @@ import java.lang.Exception
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AuthenticationScreen(
+fun LoginScreen(
     loadingState: Boolean,
     oneTapState: OneTapSignInState,
     messageBarState: MessageBarState,
@@ -23,7 +23,7 @@ fun AuthenticationScreen(
 ) {
     ContentWithMessageBar(messageBarState = messageBarState) {
         Scaffold {
-            AuthenticationContent(loadingState = loadingState, onClick = onClick)
+            LoginContent(loadingState = loadingState, onClick = onClick)
         }
     }
     OneTapSignInWithGoogle(
