@@ -17,7 +17,6 @@ android {
         correctErrorTypes = true
     }
 
-
     defaultConfig {
         applicationId = "com.alexlade.diaryapp"
         minSdk = 24
@@ -43,6 +42,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility =  JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
