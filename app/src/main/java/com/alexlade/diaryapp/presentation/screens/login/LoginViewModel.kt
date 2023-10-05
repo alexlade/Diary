@@ -21,7 +21,7 @@ class LoginViewModel : ViewModel() {
 
     fun signInWithMongoAtlas(
         tokenId: String,
-        onSuccess: (Boolean) -> Unit,
+        onSuccess: () -> Unit,
         onError: (Exception) -> Unit,
     ) {
         viewModelScope.launch {
@@ -32,9 +32,14 @@ class LoginViewModel : ViewModel() {
                        .login(Credentials.jwt(tokenId))
                 }.loggedIn
                 withContext(Dispatchers.Main) {
-                    onSuccess(result)
-                    delay(1000)
-                    loggedIn.value = true
+                    if (result) {
+                        onSuccess()
+                        delay(1000)
+                        loggedIn.value = true
+                    } else {
+                        onError(Exception("User is not logged in."))
+                    }
+
                 }
             } catch (e: Exception) {
                 onError(e)
