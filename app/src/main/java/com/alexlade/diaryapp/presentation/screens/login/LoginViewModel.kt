@@ -34,7 +34,7 @@ class LoginViewModel : ViewModel() {
                 withContext(Dispatchers.Main) {
                     if (result) {
                         onSuccess()
-                        delay(1000)
+                        delay(500)
                         loggedIn.value = true
                     } else {
                         onError(Exception("User is not logged in."))

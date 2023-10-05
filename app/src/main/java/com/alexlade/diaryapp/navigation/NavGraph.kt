@@ -5,10 +5,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +24,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
@@ -28,6 +35,7 @@ import com.stevdzasan.onetap.rememberOneTapSignInState
 import io.realm.kotlin.mongodb.App
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.Exception
 
 
@@ -97,27 +105,34 @@ fun NavGraphBuilder.homeRoute(
     navigateToWrite: () -> Unit
 ) {
     composable(route = Screen.Home.route) {
-//        val scope = rememberCoroutineScope()
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//            verticalArrangement = Arrangement.Center,
-//            horizontalAlignment = Alignment.CenterHorizontally,
-//        ) {
-//            Button(
-//                onClick = {
-//                    scope.launch(Dispatchers.IO) {
-//                        App.Companion.create(APP_ID).currentUser?.logOut()
-//                    }
-//                    navigateToLogin()
-//                }
-//            ) {
-//                Text("Logout")
-//            }
-//        }
-
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        var signOutDialogOpen by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
         HomeScreen(
-            onMenuClicked = {},
-            navigateToWrite = navigateToWrite
+            drawerState = drawerState,
+            onMenuClicked = {
+                scope.launch {
+                    drawerState.open()
+                }
+            },
+            onSignOutClicked = { signOutDialogOpen = true },
+            navigateToWrite = navigateToWrite,
+        )
+
+        DisplayAlertDialog(
+            title = "Sign Out",
+            message = "Are you sure you want to Sign Out from your Google account?",
+            dialogOpened = signOutDialogOpen,
+            onCloseDialog = { signOutDialogOpen = false },
+            onYesClicked = {
+                scope.launch(Dispatchers.IO) {
+                    withContext(Dispatchers.Main) {
+                        navigateToLogin()
+                    }
+                    val user = App.create(APP_ID).currentUser
+                    user?.logOut()
+                }
+            }
         )
     }
 }
