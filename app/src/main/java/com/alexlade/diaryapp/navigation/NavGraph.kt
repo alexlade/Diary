@@ -18,6 +18,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
@@ -43,7 +44,8 @@ fun SetupNavGraph(startDestination: String, navHostController: NavHostController
             navigateToLogin = {
                 navHostController.popBackStack()
                 navHostController.navigate(Screen.Login.route)
-            }
+            },
+            navigateToWrite = { navHostController.navigate(Screen.Write.route) }
         )
         writeRoute()
     }
@@ -92,25 +94,31 @@ fun NavGraphBuilder.loginRoute(
 
 fun NavGraphBuilder.homeRoute(
     navigateToLogin: () -> Unit,
+    navigateToWrite: () -> Unit
 ) {
     composable(route = Screen.Home.route) {
-        val scope = rememberCoroutineScope()
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(
-                onClick = {
-                    scope.launch(Dispatchers.IO) {
-                        App.Companion.create(APP_ID).currentUser?.logOut()
-                    }
-                    navigateToLogin()
-                }
-            ) {
-                Text("Logout")
-            }
-        }
+//        val scope = rememberCoroutineScope()
+//        Column(
+//            modifier = Modifier.fillMaxSize(),
+//            verticalArrangement = Arrangement.Center,
+//            horizontalAlignment = Alignment.CenterHorizontally,
+//        ) {
+//            Button(
+//                onClick = {
+//                    scope.launch(Dispatchers.IO) {
+//                        App.Companion.create(APP_ID).currentUser?.logOut()
+//                    }
+//                    navigateToLogin()
+//                }
+//            ) {
+//                Text("Logout")
+//            }
+//        }
+
+        HomeScreen(
+            onMenuClicked = {},
+            navigateToWrite = navigateToWrite
+        )
     }
 }
 
