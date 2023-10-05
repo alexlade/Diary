@@ -1,16 +1,20 @@
 package com.alexlade.diaryapp.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.alexlade.diaryapp.presentation.screens.auth.LoginScreen
+import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
+import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.stevdzasan.messagebar.rememberMessageBarState
 import com.stevdzasan.onetap.rememberOneTapSignInState
+import java.lang.Exception
 
 
 @Composable
@@ -24,13 +28,38 @@ fun SetupNavGraph(startDestination: String, navHostController: NavHostController
 
 fun NavGraphBuilder.loginRoute() {
     composable(route = Screen.Login.route) {
+        val viewModel: LoginViewModel = viewModel()
+        val loadingState by viewModel.loadingState
         val oneTapState = rememberOneTapSignInState()
         val messageBarState = rememberMessageBarState()
+
         LoginScreen(
-            loadingState = oneTapState.opened,
+            loadingState = loadingState,
             oneTapState = oneTapState,
             messageBarState = messageBarState,
-            onClick = { oneTapState.open() },
+            onClick = {
+                oneTapState.open()
+                viewModel.setLoadingState(true)
+            },
+            onTokenIdReceived = { tokenId ->
+                viewModel.signInWithMongoAtlas(
+                    tokenId = tokenId,
+                    onSuccess = {
+                        if (it) {
+                            messageBarState.addSuccess("Successfully Logged In")
+                        }
+                        viewModel.setLoadingState(false)
+                    },
+                    onError = {
+                        messageBarState.addError(it)
+                        viewModel.setLoadingState(false)
+                    }
+                )
+
+            },
+            onDialogDismiss = { msg ->
+                messageBarState.addError(Exception(msg))
+            }
         )
     }
 }

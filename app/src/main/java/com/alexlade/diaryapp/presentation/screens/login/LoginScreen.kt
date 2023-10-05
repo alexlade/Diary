@@ -1,7 +1,6 @@
-package com.alexlade.diaryapp.presentation.screens.auth
+package com.alexlade.diaryapp.presentation.screens.login
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -19,6 +18,8 @@ fun LoginScreen(
     loadingState: Boolean,
     oneTapState: OneTapSignInState,
     messageBarState: MessageBarState,
+    onTokenIdReceived: (String) -> Unit,
+    onDialogDismiss: (String) -> Unit,
     onClick: () -> Unit,
 ) {
     ContentWithMessageBar(messageBarState = messageBarState) {
@@ -30,11 +31,10 @@ fun LoginScreen(
         state = oneTapState,
         clientId = CLIENT_ID,
         onTokenIdReceived = { token ->
-            Log.d("Auth", token)
-            messageBarState.addSuccess("Logged in successfully")
+            onTokenIdReceived(token)
         },
         onDialogDismissed = { msg ->
-            Log.d("Auth", msg)
+            onDialogDismiss(msg)
             messageBarState.addError(Exception(msg))
         }
     )
