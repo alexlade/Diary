@@ -1,4 +1,4 @@
-package com.alexlade.diaryapp.presentation.screens.auth
+package com.alexlade.diaryapp.presentation.screens.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
