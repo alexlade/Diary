@@ -26,9 +26,9 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                val result = withContext(Dispatchers.IO) {
-                   App.Companion.create(APP_ID).login(
-                       Credentials.google(tokenId, GoogleAuthType.ID_TOKEN)
-                   )
+                   App.Companion
+                       .create(APP_ID)
+                       .login(Credentials.jwt(tokenId))
                 }.loggedIn
                 withContext(Dispatchers.Main) {
                     onSuccess(result)
