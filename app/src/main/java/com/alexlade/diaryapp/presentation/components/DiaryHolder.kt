@@ -1,5 +1,6 @@
 package com.alexlade.diaryapp.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.util.toInstance
+import io.realm.kotlin.ext.realmListOf
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
@@ -47,6 +50,7 @@ fun DiaryHolder(
 ) {
     val localDensity = LocalDensity.current
     var componentHeight by remember { mutableStateOf(0.dp) }
+    var galleryOpened by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -83,6 +87,19 @@ fun DiaryHolder(
                     overflow = TextOverflow.Ellipsis,
                 )
 
+                if (diary.images.isNotEmpty()) {
+                    ShowGalleryButton(
+                        galleryOpened = galleryOpened,
+                        onClick = { galleryOpened = galleryOpened.not() }
+                    )
+                }
+                AnimatedVisibility(visible = galleryOpened) {
+                    Column(
+                        modifier = Modifier.padding(all = 14.dp)
+                    ) {
+                        Gallery(images = diary.images)
+                    }
+                }
             }
 
         }
@@ -125,6 +142,19 @@ fun DiaryHeader(
 
 }
 
+@Composable
+fun ShowGalleryButton(
+    galleryOpened: Boolean,
+    onClick: () -> Unit,
+) {
+    TextButton(onClick = onClick) {
+        Text(
+            text = if (galleryOpened) "Hide Gallery" else "Show Gallery",
+            style = TextStyle(fontSize = MaterialTheme.typography.bodySmall.fontSize),
+        )
+    }
+}
+
 
 @Preview(showBackground = false)
 @Composable
@@ -133,9 +163,9 @@ fun PreviewDiaryHolder() {
         diary = Diary().apply {
             title = "Title"
             mood = Mood.Angry.name
-            description = "fasdfasdfasdf asdf asfasdfadsf a f dfasdf a fasfasf  asdfasdf asdf a afd" +
-                    "fasdf asdfasd fasdfasdfasdf fasdfasdf asdf  fda  fasdfasdfas fasdfasdfsf asdfa"
-
+            description =
+                "fasdfasdfasdf asdf asfasdfadsf a f dfasdf a fasfasf  asdfasdf asdf a afd" +
+                        "fasdf asdfasd fasdfasdfasdf fasdfasdf asdf  fda  fasdfasdfas fasdfasdfsf asdfa"
         },
         onClick = { })
 }
