@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
+import com.alexlade.diaryapp.presentation.screens.home.HomeViewModel
 import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
@@ -105,10 +106,14 @@ fun NavGraphBuilder.homeRoute(
     navigateToWrite: () -> Unit
 ) {
     composable(route = Screen.Home.route) {
+        val viewModel: HomeViewModel = viewModel()
+        val diaries by viewModel.diaries
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         var signOutDialogOpen by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
+
         HomeScreen(
+            diaries = diaries,
             drawerState = drawerState,
             onMenuClicked = {
                 scope.launch {
