@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
+import com.alexlade.diaryapp.util.RequestState
 import com.stevdzasan.messagebar.rememberMessageBarState
 import com.stevdzasan.onetap.rememberOneTapSignInState
 import io.realm.kotlin.mongodb.App
@@ -41,20 +43,26 @@ import java.lang.Exception
 
 
 @Composable
-fun SetupNavGraph(startDestination: String, navHostController: NavHostController) {
+fun SetupNavGraph(
+    onDataLoaded: () -> Unit,
+    startDestination: String,
+    navHostController: NavHostController,
+) {
     NavHost(navController = navHostController, startDestination = startDestination) {
         loginRoute(
             navigateToHome = {
                 navHostController.popBackStack()
                 navHostController.navigate(Screen.Home.route)
-            }
+            },
+            onDataLoaded = onDataLoaded,
         )
         homeRoute(
             navigateToLogin = {
                 navHostController.popBackStack()
                 navHostController.navigate(Screen.Login.route)
             },
-            navigateToWrite = { navHostController.navigate(Screen.Write.route) }
+            navigateToWrite = { navHostController.navigate(Screen.Write.route) },
+            onDataLoaded = onDataLoaded,
         )
         writeRoute()
     }
@@ -62,13 +70,16 @@ fun SetupNavGraph(startDestination: String, navHostController: NavHostController
 
 fun NavGraphBuilder.loginRoute(
     navigateToHome: () -> Unit,
-) {
+    onDataLoaded: () -> Unit,
+    ) {
     composable(route = Screen.Login.route) {
         val viewModel: LoginViewModel = viewModel()
         val loadingState by viewModel.loadingState
         val loggedIn by viewModel.loggedIn
         val oneTapState = rememberOneTapSignInState()
         val messageBarState = rememberMessageBarState()
+
+        LaunchedEffect(key1 = Unit, block = { onDataLoaded() } )
 
         LoginScreen(
             loggedIn = loggedIn,
@@ -103,7 +114,8 @@ fun NavGraphBuilder.loginRoute(
 
 fun NavGraphBuilder.homeRoute(
     navigateToLogin: () -> Unit,
-    navigateToWrite: () -> Unit
+    navigateToWrite: () -> Unit,
+    onDataLoaded: () -> Unit,
 ) {
     composable(route = Screen.Home.route) {
         val viewModel: HomeViewModel = viewModel()
@@ -111,6 +123,12 @@ fun NavGraphBuilder.homeRoute(
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         var signOutDialogOpen by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
+
+        LaunchedEffect(key1 = diaries) {
+            if (diaries !is RequestState.Loading) {
+                onDataLoaded()
+            }
+        }
 
         HomeScreen(
             diaries = diaries,

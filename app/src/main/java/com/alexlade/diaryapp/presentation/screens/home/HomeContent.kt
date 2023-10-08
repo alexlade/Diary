@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -21,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.presentation.components.DiaryHolder
@@ -44,10 +47,13 @@ fun HomeContent(
         EmptyPage()
     } else {
         LazyColumn(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .padding(top = paddingValues.calculateTopPadding()),
-        ) {
+            modifier = Modifier.padding(horizontal = 24.dp)
+                .padding(top = paddingValues.calculateTopPadding())
+                .padding(bottom = paddingValues.calculateBottomPadding())
+                .padding(start = paddingValues.calculateStartPadding(LayoutDirection.Ltr))
+                .padding(end = paddingValues.calculateEndPadding(LayoutDirection.Ltr))
+        )
+         {
             diaryNotes.forEach { (localDate, diaries) ->
                 stickyHeader(key = localDate) {
                     DateHeader(localDate = localDate)
@@ -63,8 +69,11 @@ fun HomeContent(
 @Composable
 fun DateHeader(localDate: LocalDate) {
     Row(
-        modifier = Modifier.padding(vertical = 14.dp).background(MaterialTheme.colorScheme.surface),
-        verticalAlignment = Alignment.CenterVertically) {
+        modifier = Modifier
+            .padding(vertical = 14.dp)
+            .background(MaterialTheme.colorScheme.surface),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = String.format("%02d", localDate.dayOfMonth),
