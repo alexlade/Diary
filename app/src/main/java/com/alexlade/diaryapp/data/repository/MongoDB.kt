@@ -67,34 +67,54 @@ object MongoDB : MongoRepository {
     }
 
     override fun getSelectedDairy(diaryId: ObjectId): Flow<RequestState<Diary>> {
-        return if (user != null) {
-            try {
-                realm.query<Diary>(query = "_id == $0", diaryId).find().asFlow().map {
-                    RequestState.Success(data = it.list.first())
-                }
-            } catch (e: Exception) {
-                flow { emit(RequestState.Error(e)) }
-            }
-        } else {
-            flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
-
+        if (user == null) flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
+        return flow {
+            emit(
+                try {
+                    RequestState.Success(
+                        data = realm.query<Diary>(query = "_id == $0", diaryId)
+                        .find()
+                        .first()
+                    )
+                } catch (e: Exception) { RequestState.Error(e) }
+            )
         }
     }
 
-    override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
-        return if (user != null) {
-            try {
-                realm.write {
-                    val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
-                    RequestState.Success(data = addedDiary)
-                }
-            } catch (e: Exception) {
-                RequestState.Error(e)
+override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
+    return if (user != null) {
+        try {
+            realm.write {
+                val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
+                RequestState.Success(data = addedDiary)
             }
-        } else {
-            RequestState.Error(UserNotAuthenticatedException())
+        } catch (e: Exception) {
+            RequestState.Error(e)
         }
+    } else {
+        RequestState.Error(UserNotAuthenticatedException())
     }
+}
+
+override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
+    return if (user != null) {
+        realm.write {
+            query<Diary>("_id == $0", diary._id)
+                .first()
+                .find()
+                ?.let {
+                    it.title = diary.title
+                    it.description = diary.description
+                    it.mood = diary.mood
+                    it.images = diary.images
+                    it.date = diary.date
+                    RequestState.Success(data = it)
+                } ?: RequestState.Error(Exception("Queried diary does not exist"))
+        }
+    } else {
+        RequestState.Error(UserNotAuthenticatedException())
+    }
+}
 
 }
 

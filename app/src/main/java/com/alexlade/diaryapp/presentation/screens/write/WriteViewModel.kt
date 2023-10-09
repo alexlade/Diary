@@ -69,22 +69,60 @@ class WriteViewModel(
         uiState = uiState.copy(mood = mood)
     }
 
-    fun writeDiary(
+    fun upsertDiary(
         diary: Diary,
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-       viewModelScope.launch(Dispatchers.IO) {
-           when (val requestState = MongoDB.insertDiary(diary = diary)) {
-               is RequestState.Success -> { withContext(Dispatchers.IO) { onSuccess() } }
-               is RequestState.Error, RequestState.Idle, RequestState.Loading -> {
-                   val error = (requestState as? RequestState.Error)?.error?.message
-                       ?: "Idle/ Loading Request State"
-                   onError(error)
-               }
-           }
-       }
+        viewModelScope.launch(Dispatchers.IO) {
+            if (uiState.diaryId == null) {
+                insertDiary(diary = diary, onSuccess = onSuccess, onError = onError)
+            } else {
+                updateDiary(diary = diary, onSuccess = onSuccess, onError = onError)
+            }
+        }
     }
+
+    private suspend fun insertDiary(
+        diary: Diary,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        when (val requestState = MongoDB.insertDiary(diary = diary)) {
+            is RequestState.Success -> {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }
+
+            is RequestState.Error, RequestState.Idle, RequestState.Loading -> {
+                val error = (requestState as? RequestState.Error)?.error?.message
+                    ?: "Idle/ Loading Request State"
+                onError(error)
+            }
+        }
+    }
+
+    private suspend fun updateDiary(
+        diary: Diary,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        when (val requestState = MongoDB.updateDiary(
+            diary = diary.apply {
+                _id = ObjectId.Companion.from(uiState.diaryId!!)
+                date = uiState.diary!!.date!!
+            })) {
+            is RequestState.Success -> {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }
+
+            is RequestState.Error, RequestState.Idle, RequestState.Loading -> {
+                val error = (requestState as? RequestState.Error)?.error?.message
+                    ?: "Idle/ Loading Request State"
+                onError(error)
+            }
+        }
+    }
+
 
 }
 
