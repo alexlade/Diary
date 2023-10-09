@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alexlade.diaryapp.data.repository.MongoDB
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
@@ -40,14 +39,15 @@ class WriteViewModel(
     private fun fetchSelectedDiary() {
         if (uiState.diaryId != null) {
             viewModelScope.launch(Dispatchers.Main) {
-                val diary = MongoDB.getSelectedDairy(
+                MongoDB.getSelectedDairy(
                     diaryId = ObjectId.Companion.from(uiState.diaryId!!)
-                )
-                if (diary is RequestState.Success) {
-                    setTitle(diary.data.title)
-                    setDescription(diary.data.description)
-                    setMood(Mood.valueOf(diary.data.mood))
-                    setDiary(diary = diary.data)
+                ).collect { state ->
+                    if (state is RequestState.Success) {
+                        setTitle(state.data.title)
+                        setDescription(state.data.description)
+                        setMood(Mood.valueOf(state.data.mood))
+                        setDiary(diary = state.data)
+                    }
                 }
             }
         }
@@ -75,7 +75,7 @@ class WriteViewModel(
         onError: (String) -> Unit,
     ) {
        viewModelScope.launch(Dispatchers.IO) {
-           when (val requestState = MongoDB.addDiary(diary = diary)) {
+           when (val requestState = MongoDB.insertDiary(diary = diary)) {
                is RequestState.Success -> { withContext(Dispatchers.IO) { onSuccess() } }
                is RequestState.Error, RequestState.Idle, RequestState.Loading -> {
                    val error = (requestState as? RequestState.Error)?.error?.message

@@ -66,20 +66,22 @@ object MongoDB : MongoRepository {
         }
     }
 
-    override fun getSelectedDairy(diaryId: ObjectId): RequestState<Diary> {
+    override fun getSelectedDairy(diaryId: ObjectId): Flow<RequestState<Diary>> {
         return if (user != null) {
             try {
-                val diary = realm.query<Diary>(query = "_id == $0", diaryId).find().first()
-                RequestState.Success(data = diary)
+                realm.query<Diary>(query = "_id == $0", diaryId).find().asFlow().map {
+                    RequestState.Success(data = it.list.first())
+                }
             } catch (e: Exception) {
-                RequestState.Error(e)
+                flow { emit(RequestState.Error(e)) }
             }
         } else {
-            RequestState.Error(UserNotAuthenticatedException())
+            flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
+
         }
     }
 
-    override suspend fun addDiary(diary: Diary): RequestState<Diary> {
+    override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
         return if (user != null) {
             try {
                 realm.write {
