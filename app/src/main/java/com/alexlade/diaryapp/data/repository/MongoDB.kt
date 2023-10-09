@@ -79,6 +79,21 @@ object MongoDB : MongoRepository {
         }
     }
 
+    override suspend fun addDiary(diary: Diary): RequestState<Diary> {
+        return if (user != null) {
+            try {
+                realm.write {
+                    val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
+                    RequestState.Success(data = addedDiary)
+                }
+            } catch (e: Exception) {
+                RequestState.Error(e)
+            }
+        } else {
+            RequestState.Error(UserNotAuthenticatedException())
+        }
+    }
+
 }
 
 

@@ -11,4 +11,6 @@ interface MongoRepository {
     fun configureTheReal()
     fun getAllDiaries(): Flow<Diaries>
     fun getSelectedDairy(diaryId: ObjectId): RequestState<Diary>
+
+    suspend fun addDiary(diary: Diary): RequestState<Diary>
 }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alexlade.diaryapp.data.repository.MongoDB
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
@@ -52,7 +53,7 @@ class WriteViewModel(
         }
     }
 
-    fun setDiary(diary: Diary) {
+    private fun setDiary(diary: Diary) {
         uiState = uiState.copy(diary = diary)
     }
 
@@ -64,8 +65,25 @@ class WriteViewModel(
         uiState = uiState.copy(description = description)
     }
 
-    fun setMood(mood: Mood) {
+    private fun setMood(mood: Mood) {
         uiState = uiState.copy(mood = mood)
+    }
+
+    fun writeDiary(
+        diary: Diary,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+       viewModelScope.launch(Dispatchers.IO) {
+           when (val requestState = MongoDB.addDiary(diary = diary)) {
+               is RequestState.Success -> { withContext(Dispatchers.IO) { onSuccess() } }
+               is RequestState.Error, RequestState.Idle, RequestState.Loading -> {
+                   val error = (requestState as? RequestState.Error)?.error?.message
+                       ?: "Idle/ Loading Request State"
+                   onError(error)
+               }
+           }
+       }
     }
 
 }

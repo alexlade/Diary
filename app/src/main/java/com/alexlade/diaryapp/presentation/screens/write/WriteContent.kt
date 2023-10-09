@@ -1,5 +1,6 @@
 package com.alexlade.diaryapp.presentation.screens.write
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,19 +34,23 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun WriteContent(
+    uiState: UiState,
     pagerState: PagerState,
     title: String,
     onTitleChanged: (String) -> Unit,
     description: String,
     onDescriptionChanged: (String) -> Unit,
     paddingValues: PaddingValues,
+    onSaveClicked: (Diary) -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -120,7 +125,21 @@ fun WriteContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
-                onClick = {},
+                onClick = {
+                    if (uiState.title.isNotEmpty() && uiState.description.isNotEmpty()) {
+                        val diary = Diary().apply {
+                            this.title = uiState.title
+                            this.description = uiState.description
+                        }
+                        onSaveClicked(diary)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Title or description can't be empty",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                },
                 shape = Shapes().small,
             ) {
                 Text(text = "Save")
