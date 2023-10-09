@@ -6,7 +6,6 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -14,22 +13,23 @@ import com.alexlade.diaryapp.model.Mood
 @Composable
 fun WriteScreen(
     uiState: UiState,
-    diary: Diary?,
     onTitleChanged: (String) -> Unit,
     onDescriptionChanged: (String) -> Unit,
     onBackClicked: () -> Unit,
     onDeleteConfirmed: () -> Unit,
     pagerState: PagerState,
-    ) {
+    moodName: () -> String,
+) {
     LaunchedEffect(key1 = uiState.mood, block = {
         pagerState.scrollToPage(Mood.valueOf(uiState.mood.name).ordinal)
     })
     Scaffold(
         topBar = {
             WriteTopBar(
-                diary = diary,
+                diary = uiState.diary,
                 onBackClicked = onBackClicked,
                 onDeleteConfirmed = onDeleteConfirmed,
+                moodName = moodName,
             )
         },
     ) {

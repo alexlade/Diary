@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alexlade.diaryapp.data.repository.MongoDB
+import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.util.RequestState
@@ -45,9 +46,14 @@ class WriteViewModel(
                     setTitle(diary.data.title)
                     setDescription(diary.data.description)
                     setMood(Mood.valueOf(diary.data.mood))
+                    setDiary(diary = diary.data)
                 }
             }
         }
+    }
+
+    fun setDiary(diary: Diary) {
+        uiState = uiState.copy(diary = diary)
     }
 
     fun setTitle(title: String) {
@@ -66,6 +72,7 @@ class WriteViewModel(
 
 data class UiState(
     val diaryId: String? = null,
+    val diary: Diary? = null,
     val title: String = "",
     val description: String = "",
     val mood: Mood = Mood.Neutral,

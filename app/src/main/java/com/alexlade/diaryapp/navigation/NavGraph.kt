@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.alexlade.diaryapp.model.Diary
+import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
 import com.alexlade.diaryapp.presentation.screens.home.HomeViewModel
@@ -191,7 +193,11 @@ fun NavGraphBuilder.writeRoute(
         val viewModel: WriteViewModel = viewModel()
         val uiState = viewModel.uiState
         val pagerState = rememberPagerState()
-
+        val pageNumber by remember {
+            derivedStateOf {
+                pagerState.currentPage
+            }
+        }
 
         LaunchedEffect(key1 = uiState, block = {
             Log.d("Diary", "${uiState.diaryId}")
@@ -199,12 +205,12 @@ fun NavGraphBuilder.writeRoute(
 
         WriteScreen(
             uiState = uiState,
-            diary = null,
             pagerState = pagerState,
             onTitleChanged = { viewModel.setTitle(title = it) },
             onDescriptionChanged = { viewModel.setDescription(description = it) },
             onBackClicked = onBackClicked,
             onDeleteConfirmed = { },
+            moodName = { Mood.values()[pageNumber].name }
         )
     }
 }

@@ -25,6 +25,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
+import com.alexlade.diaryapp.util.toInstance
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +39,34 @@ fun WriteTopBar(
     diary: Diary?,
     onBackClicked: () -> Unit,
     onDeleteConfirmed: () -> Unit,
+    moodName: () -> String,
 ) {
+    val currentDate by remember { mutableStateOf(LocalDate.now()) }
+    val currentTime by remember { mutableStateOf(LocalTime.now()) }
+    val formattedDate = remember(key1 = currentDate) {
+        DateTimeFormatter
+            .ofPattern("dd MMM yyyy")
+            .format(currentDate)
+            .uppercase()
+    }
+    val formattedTime= remember(key1 = currentTime) {
+        DateTimeFormatter
+            .ofPattern("hh:mm a")
+            .format(currentTime)
+            .uppercase()
+    }
+
+    val diaryDateTime = remember(diary) {
+        if (diary != null) {
+            SimpleDateFormat(
+                "dd MMM yyyy, hh:mm a",
+                Locale.getDefault()
+            ).format(Date.from(diary.date.toInstance())).uppercase()
+        } else {
+            "Unknown"
+        }
+    }
+
     CenterAlignedTopAppBar(
         navigationIcon = {
             IconButton(onClick = onBackClicked) {
@@ -50,7 +84,7 @@ fun WriteTopBar(
                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
                         fontWeight = FontWeight.Bold,
                     ),
-                    text = "Happy",
+                    text = moodName(),
                     textAlign = TextAlign.Center,
                 )
                 Text(
@@ -58,13 +92,13 @@ fun WriteTopBar(
                     style = TextStyle(
                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                     ),
-                    text = "10 JAN 2023, 10:00 AM",
+                    text = if (diary != null) diaryDateTime else "$formattedDate, $formattedTime",
                     textAlign = TextAlign.Center,
-                    )
+                )
             }
         },
         actions = {
-            IconButton(onClick = {  }) {
+            IconButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Date Icon",
@@ -92,7 +126,7 @@ fun DeleteDiaryAction(
     var openDialog by remember { mutableStateOf(false) }
 
     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        DropdownMenuItem(text = { Text(text = "Delete")}, onClick = {
+        DropdownMenuItem(text = { Text(text = "Delete") }, onClick = {
             openDialog = true
             expanded = false
         })
