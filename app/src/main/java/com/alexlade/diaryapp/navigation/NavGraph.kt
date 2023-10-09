@@ -1,9 +1,12 @@
 package com.alexlade.diaryapp.navigation
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -165,6 +168,7 @@ fun NavGraphBuilder.homeRoute(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 fun NavGraphBuilder.writeRoute(
     onBackClicked: () -> Unit,
 ) {
@@ -176,10 +180,13 @@ fun NavGraphBuilder.writeRoute(
             defaultValue = null
         })
     ) {
+
+        val pagerState = rememberPagerState()
         WriteScreen(
             diary = null,
+            pagerState = pagerState,
             onBackClicked = onBackClicked,
-            onDeleteConfirmed = { }
+            onDeleteConfirmed = { },
         )
     }
 }
