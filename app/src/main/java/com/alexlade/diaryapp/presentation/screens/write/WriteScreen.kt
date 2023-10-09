@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
+import java.time.ZonedDateTime
 
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -21,6 +22,7 @@ fun WriteScreen(
     pagerState: PagerState,
     moodName: () -> String,
     onSaveClicked: (Diary) -> Unit,
+    onDateTimeUpdated: (ZonedDateTime) -> Unit,
 ) {
     LaunchedEffect(key1 = uiState.mood, block = {
         pagerState.scrollToPage(Mood.valueOf(uiState.mood.name).ordinal)
@@ -32,6 +34,7 @@ fun WriteScreen(
                 onBackClicked = onBackClicked,
                 onDeleteConfirmed = onDeleteConfirmed,
                 moodName = moodName,
+                onDateTimeUpdated = onDateTimeUpdated
             )
         },
     ) {

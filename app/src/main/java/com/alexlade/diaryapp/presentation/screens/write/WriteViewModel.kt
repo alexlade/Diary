@@ -11,10 +11,14 @@ import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.util.RequestState
+import com.alexlade.diaryapp.util.toRealmInstant
 import io.realm.kotlin.types.ObjectId
+import io.realm.kotlin.types.RealmInstant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.ZonedDateTime
+import java.time.chrono.ChronoZonedDateTime
 
 class WriteViewModel(
     private val savedStateHandle: SavedStateHandle,
@@ -69,6 +73,11 @@ class WriteViewModel(
         uiState = uiState.copy(mood = mood)
     }
 
+    fun setDateTime(zonedDateTime: ZonedDateTime) {
+        uiState = zonedDateTime
+            .let { uiState.copy(updatedDateTime = it.toInstant().toRealmInstant()) }
+    }
+
     fun upsertDiary(
         diary: Diary,
         onSuccess: () -> Unit,
@@ -88,7 +97,11 @@ class WriteViewModel(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        when (val requestState = MongoDB.insertDiary(diary = diary)) {
+        when (val requestState = MongoDB.insertDiary(diary = diary.apply {
+            if (uiState.updatedDateTime != null) {
+                date = uiState.updatedDateTime!!
+            }
+        })) {
             is RequestState.Success -> {
                 withContext(Dispatchers.Main) { onSuccess() }
             }
@@ -109,7 +122,11 @@ class WriteViewModel(
         when (val requestState = MongoDB.updateDiary(
             diary = diary.apply {
                 _id = ObjectId.Companion.from(uiState.diaryId!!)
-                date = uiState.diary!!.date!!
+                date = if (uiState.updatedDateTime != null) {
+                    uiState.updatedDateTime!!
+                } else {
+                    uiState.diary!!.date
+                }
             })) {
             is RequestState.Success -> {
                 withContext(Dispatchers.Main) { onSuccess() }
@@ -132,4 +149,5 @@ data class UiState(
     val title: String = "",
     val description: String = "",
     val mood: Mood = Mood.Neutral,
+    val updatedDateTime: RealmInstant? = null,
 )

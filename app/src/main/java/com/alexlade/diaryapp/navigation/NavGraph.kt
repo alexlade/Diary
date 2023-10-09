@@ -208,7 +208,8 @@ fun NavGraphBuilder.writeRoute(
 
                     }
                 )
-            }
+            },
+            onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) }
         )
     }
 }
