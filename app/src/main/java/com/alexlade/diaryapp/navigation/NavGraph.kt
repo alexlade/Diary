@@ -1,5 +1,6 @@
 package com.alexlade.diaryapp.navigation
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import com.alexlade.diaryapp.presentation.screens.home.HomeViewModel
 import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
 import com.alexlade.diaryapp.presentation.screens.write.WriteScreen
+import com.alexlade.diaryapp.presentation.screens.write.WriteViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.util.RequestState
@@ -67,6 +69,9 @@ fun SetupNavGraph(
                 navHostController.navigate(Screen.Login.route)
             },
             navigateToWrite = { navHostController.navigate(Screen.Write.route) },
+            navigateToWriteArgs = {
+                navHostController.navigate(Screen.Write.passDiaryId(diaryId = it))
+            },
             onDataLoaded = onDataLoaded,
         )
         writeRoute(
@@ -123,8 +128,10 @@ fun NavGraphBuilder.loginRoute(
 fun NavGraphBuilder.homeRoute(
     navigateToLogin: () -> Unit,
     navigateToWrite: () -> Unit,
+    navigateToWriteArgs: (String) -> Unit,
     onDataLoaded: () -> Unit,
-) {
+
+    ) {
     composable(route = Screen.Home.route) {
         val viewModel: HomeViewModel = viewModel()
         val diaries by viewModel.diaries
@@ -148,6 +155,7 @@ fun NavGraphBuilder.homeRoute(
             },
             onSignOutClicked = { signOutDialogOpen = true },
             navigateToWrite = navigateToWrite,
+            navigateToWriteArgs = navigateToWriteArgs,
         )
 
         DisplayAlertDialog(
@@ -180,11 +188,21 @@ fun NavGraphBuilder.writeRoute(
             defaultValue = null
         })
     ) {
-
+        val viewModel: WriteViewModel = viewModel()
+        val uiState = viewModel.uiState
         val pagerState = rememberPagerState()
+
+
+        LaunchedEffect(key1 = uiState, block = {
+            Log.d("Diary", "${uiState.diaryId}")
+        })
+
         WriteScreen(
+            uiState = uiState,
             diary = null,
             pagerState = pagerState,
+            onTitleChanged = { viewModel.setTitle(title = it) },
+            onDescriptionChanged = { viewModel.setDescription(description = it) },
             onBackClicked = onBackClicked,
             onDeleteConfirmed = { },
         )

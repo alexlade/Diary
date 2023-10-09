@@ -1,5 +1,6 @@
 package com.alexlade.diaryapp.data.repository
 
+import androidx.compose.runtime.remember
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.RequestState
@@ -10,6 +11,7 @@ import io.realm.kotlin.log.LogLevel
 import io.realm.kotlin.mongodb.App
 import io.realm.kotlin.mongodb.sync.SyncConfiguration
 import io.realm.kotlin.query.Sort
+import io.realm.kotlin.types.ObjectId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -61,6 +63,19 @@ object MongoDB : MongoRepository {
             } catch (e: Exception) {
                 flow { emit(RequestState.Error(e)) }
             }
+        }
+    }
+
+    override fun getSelectedDairy(diaryId: ObjectId): RequestState<Diary> {
+        return if (user != null) {
+            try {
+                val diary = realm.query<Diary>(query = "_id == $0", diaryId).find().first()
+                RequestState.Success(data = diary)
+            } catch (e: Exception) {
+                RequestState.Error(e)
+            }
+        } else {
+            RequestState.Error(UserNotAuthenticatedException())
         }
     }
 
