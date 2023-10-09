@@ -14,7 +14,7 @@ import io.realm.kotlin.mongodb.App
 
 class MainActivity : ComponentActivity() {
 
-    var keepSplashOpened = true
+    private var keepSplashOpened = true
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen().setKeepOnScreenCondition {

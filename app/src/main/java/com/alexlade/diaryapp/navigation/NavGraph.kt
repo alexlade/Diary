@@ -25,11 +25,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
 import com.alexlade.diaryapp.presentation.screens.home.HomeViewModel
 import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
+import com.alexlade.diaryapp.presentation.screens.write.WriteScreen
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.util.RequestState
@@ -64,14 +66,17 @@ fun SetupNavGraph(
             navigateToWrite = { navHostController.navigate(Screen.Write.route) },
             onDataLoaded = onDataLoaded,
         )
-        writeRoute()
+        writeRoute(
+            onBackClicked = {
+                navHostController.popBackStack()
+            })
     }
 }
 
 fun NavGraphBuilder.loginRoute(
     navigateToHome: () -> Unit,
     onDataLoaded: () -> Unit,
-    ) {
+) {
     composable(route = Screen.Login.route) {
         val viewModel: LoginViewModel = viewModel()
         val loadingState by viewModel.loadingState
@@ -79,7 +84,7 @@ fun NavGraphBuilder.loginRoute(
         val oneTapState = rememberOneTapSignInState()
         val messageBarState = rememberMessageBarState()
 
-        LaunchedEffect(key1 = Unit, block = { onDataLoaded() } )
+        LaunchedEffect(key1 = Unit, block = { onDataLoaded() })
 
         LoginScreen(
             loggedIn = loggedIn,
@@ -160,7 +165,9 @@ fun NavGraphBuilder.homeRoute(
     }
 }
 
-fun NavGraphBuilder.writeRoute() {
+fun NavGraphBuilder.writeRoute(
+    onBackClicked: () -> Unit,
+) {
     composable(
         route = Screen.Write.route,
         arguments = listOf(navArgument(name = WRITE_SCREEN_ARGUMENT_KEY) {
@@ -169,6 +176,10 @@ fun NavGraphBuilder.writeRoute() {
             defaultValue = null
         })
     ) {
-
+        WriteScreen(
+            diary = null,
+            onBackClicked = onBackClicked,
+            onDeleteConfirmed = { }
+        )
     }
 }
