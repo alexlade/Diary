@@ -15,6 +15,7 @@ import com.alexlade.diaryapp.util.toRealmInstant
 import io.realm.kotlin.types.ObjectId
 import io.realm.kotlin.types.RealmInstant
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
@@ -45,7 +46,10 @@ class WriteViewModel(
             viewModelScope.launch(Dispatchers.Main) {
                 MongoDB.getSelectedDairy(
                     diaryId = ObjectId.Companion.from(uiState.diaryId!!)
-                ).collect { state ->
+                ).catch {
+                    emit(RequestState.Error(Exception("Diary is already deleted.")))
+                }
+                    .collect { state ->
                     if (state is RequestState.Success) {
                         setTitle(state.data.title)
                         setDescription(state.data.description)
@@ -138,6 +142,29 @@ class WriteViewModel(
                 onError(error)
             }
         }
+    }
+
+    fun deleteDiary(
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch {
+            if (uiState.diaryId == null) onError("No selected diary")
+
+            when (val requestState =
+                MongoDB.deleteDiary(id = ObjectId.Companion.from(uiState.diaryId!!))) {
+                is RequestState.Success -> {
+                    withContext(Dispatchers.Main) { onSuccess() }
+                }
+
+                is RequestState.Error, RequestState.Idle, RequestState.Loading -> {
+                    val error = (requestState as? RequestState.Error)?.error?.message
+                        ?: "Idle/ Loading Request State"
+                    onError(error)
+                }
+            }
+        }
+
     }
 
 

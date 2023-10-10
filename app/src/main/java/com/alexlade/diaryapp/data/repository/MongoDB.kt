@@ -116,6 +116,23 @@ override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
     }
 }
 
+    override suspend fun deleteDiary(id: ObjectId): RequestState<Diary> {
+        return user?.let { user ->
+            realm.write {
+                try {
+                    query<Diary>("_id == $0 AND ownerId = $1", id, user.identity)
+                        .first()
+                        .find()
+                        ?.let { diary ->
+                            delete(diary)
+                            RequestState.Success(data = diary)
+                        } ?: RequestState.Error(Exception("No diary found"))
+                } catch (e: Exception) {
+                    RequestState.Error(e)
+                }
+            }
+        } ?: RequestState.Error(UserNotAuthenticatedException())
+    }
 }
 
 

@@ -1,6 +1,7 @@
 package com.alexlade.diaryapp.navigation
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.DrawerValue
@@ -13,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -187,6 +189,7 @@ fun NavGraphBuilder.writeRoute(
                 pagerState.currentPage
             }
         }
+        val context = LocalContext.current
 
         LaunchedEffect(key1 = uiState, block = {
             Log.d("Diary", "${uiState.diaryId}")
@@ -198,14 +201,27 @@ fun NavGraphBuilder.writeRoute(
             onTitleChanged = { viewModel.setTitle(title = it) },
             onDescriptionChanged = { viewModel.setDescription(description = it) },
             onBackClicked = onBackClicked,
-            onDeleteConfirmed = { },
+            onDeleteConfirmed = { viewModel.deleteDiary(
+                onSuccess = {
+                    Toast.makeText(
+                        context, "Deleted", Toast.LENGTH_LONG
+                    )
+                },
+                onError = {
+                    Toast.makeText(
+                        context, it, Toast.LENGTH_LONG
+                    )
+                }
+            )},
             moodName = { Mood.values()[pageNumber].name },
             onSaveClicked = {
                 viewModel.upsertDiary(
                     diary = it.apply { mood = Mood.values()[pageNumber].name },
                     onSuccess = { onBackClicked() },
                     onError = {
-
+                        Toast.makeText(
+                            context, it, Toast.LENGTH_LONG
+                        )
                     }
                 )
             },
