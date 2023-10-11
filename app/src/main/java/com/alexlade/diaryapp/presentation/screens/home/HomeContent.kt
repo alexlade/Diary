@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,11 +49,10 @@ fun HomeContent(
         EmptyPage()
     } else {
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 24.dp)
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(bottom = paddingValues.calculateBottomPadding())
-                .padding(start = paddingValues.calculateStartPadding(LayoutDirection.Ltr))
-                .padding(end = paddingValues.calculateEndPadding(LayoutDirection.Ltr))
+                .navigationBarsPadding()
         )
          {
             diaryNotes.forEach { (localDate, diaries) ->

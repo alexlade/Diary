@@ -1,23 +1,20 @@
 package com.alexlade.diaryapp.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -25,11 +22,14 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
 import com.alexlade.diaryapp.presentation.screens.home.HomeViewModel
 import com.alexlade.diaryapp.presentation.screens.login.LoginScreen
 import com.alexlade.diaryapp.presentation.screens.login.LoginViewModel
+import com.alexlade.diaryapp.presentation.screens.write.WriteScreen
+import com.alexlade.diaryapp.presentation.screens.write.WriteViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.util.RequestState
@@ -62,16 +62,22 @@ fun SetupNavGraph(
                 navHostController.navigate(Screen.Login.route)
             },
             navigateToWrite = { navHostController.navigate(Screen.Write.route) },
+            navigateToWriteArgs = {
+                navHostController.navigate(Screen.Write.passDiaryId(diaryId = it))
+            },
             onDataLoaded = onDataLoaded,
         )
-        writeRoute()
+        writeRoute(
+            onBackClicked = {
+                navHostController.popBackStack()
+            })
     }
 }
 
 fun NavGraphBuilder.loginRoute(
     navigateToHome: () -> Unit,
     onDataLoaded: () -> Unit,
-    ) {
+) {
     composable(route = Screen.Login.route) {
         val viewModel: LoginViewModel = viewModel()
         val loadingState by viewModel.loadingState
@@ -79,7 +85,7 @@ fun NavGraphBuilder.loginRoute(
         val oneTapState = rememberOneTapSignInState()
         val messageBarState = rememberMessageBarState()
 
-        LaunchedEffect(key1 = Unit, block = { onDataLoaded() } )
+        LaunchedEffect(key1 = Unit, block = { onDataLoaded() })
 
         LoginScreen(
             loggedIn = loggedIn,
@@ -115,8 +121,10 @@ fun NavGraphBuilder.loginRoute(
 fun NavGraphBuilder.homeRoute(
     navigateToLogin: () -> Unit,
     navigateToWrite: () -> Unit,
+    navigateToWriteArgs: (String) -> Unit,
     onDataLoaded: () -> Unit,
-) {
+
+    ) {
     composable(route = Screen.Home.route) {
         val viewModel: HomeViewModel = viewModel()
         val diaries by viewModel.diaries
@@ -140,6 +148,7 @@ fun NavGraphBuilder.homeRoute(
             },
             onSignOutClicked = { signOutDialogOpen = true },
             navigateToWrite = navigateToWrite,
+            navigateToWriteArgs = navigateToWriteArgs,
         )
 
         DisplayAlertDialog(
@@ -160,7 +169,10 @@ fun NavGraphBuilder.homeRoute(
     }
 }
 
-fun NavGraphBuilder.writeRoute() {
+@OptIn(ExperimentalFoundationApi::class)
+fun NavGraphBuilder.writeRoute(
+    onBackClicked: () -> Unit,
+) {
     composable(
         route = Screen.Write.route,
         arguments = listOf(navArgument(name = WRITE_SCREEN_ARGUMENT_KEY) {
@@ -169,6 +181,51 @@ fun NavGraphBuilder.writeRoute() {
             defaultValue = null
         })
     ) {
+        val viewModel: WriteViewModel = viewModel()
+        val uiState = viewModel.uiState
+        val pagerState = rememberPagerState()
+        val pageNumber by remember {
+            derivedStateOf {
+                pagerState.currentPage
+            }
+        }
+        val context = LocalContext.current
 
+        LaunchedEffect(key1 = uiState, block = {
+            Log.d("Diary", "${uiState.diaryId}")
+        })
+
+        WriteScreen(
+            uiState = uiState,
+            pagerState = pagerState,
+            onTitleChanged = { viewModel.setTitle(title = it) },
+            onDescriptionChanged = { viewModel.setDescription(description = it) },
+            onBackClicked = onBackClicked,
+            onDeleteConfirmed = { viewModel.deleteDiary(
+                onSuccess = {
+                    Toast.makeText(
+                        context, "Deleted", Toast.LENGTH_LONG
+                    )
+                },
+                onError = {
+                    Toast.makeText(
+                        context, it, Toast.LENGTH_LONG
+                    )
+                }
+            )},
+            moodName = { Mood.values()[pageNumber].name },
+            onSaveClicked = {
+                viewModel.upsertDiary(
+                    diary = it.apply { mood = Mood.values()[pageNumber].name },
+                    onSuccess = { onBackClicked() },
+                    onError = {
+                        Toast.makeText(
+                            context, it, Toast.LENGTH_LONG
+                        )
+                    }
+                )
+            },
+            onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) }
+        )
     }
 }

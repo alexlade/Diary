@@ -117,7 +117,10 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager:0.27.0")
 
     // date-time picker
-    implementation("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.0.2")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.0.2")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:clock:1.0.2")
+
 
     // message bar compose
     implementation("com.github.stevdza-san:MessageBarCompose:1.0.5")
