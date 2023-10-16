@@ -22,6 +22,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.alexlade.diaryapp.model.GalleryImage
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
@@ -33,6 +34,7 @@ import com.alexlade.diaryapp.presentation.screens.write.WriteViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.model.RequestState
+import com.alexlade.diaryapp.model.rememberGalleryState
 import com.stevdzasan.messagebar.rememberMessageBarState
 import com.stevdzasan.onetap.rememberOneTapSignInState
 import io.realm.kotlin.mongodb.App
@@ -190,6 +192,7 @@ fun NavGraphBuilder.writeRoute(
             }
         }
         val context = LocalContext.current
+        val galleryState = rememberGalleryState()
 
         LaunchedEffect(key1 = uiState, block = {
             Log.d("Diary", "${uiState.diaryId}")
@@ -228,7 +231,13 @@ fun NavGraphBuilder.writeRoute(
                     }
                 )
             },
-            onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) }
+            onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) },
+            galleryState = galleryState,
+            onImageSelected = {
+                galleryState.addImage(
+                    GalleryImage(image = it)
+                )
+            }
         )
     }
 }

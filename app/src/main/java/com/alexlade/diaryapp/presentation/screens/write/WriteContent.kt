@@ -1,5 +1,6 @@
 package com.alexlade.diaryapp.presentation.screens.write
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +42,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.alexlade.diaryapp.model.Diary
+import com.alexlade.diaryapp.model.GalleryState
 import com.alexlade.diaryapp.model.Mood
+import com.alexlade.diaryapp.model.rememberGalleryState
+import com.alexlade.diaryapp.presentation.components.GalleryUploader
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -55,6 +59,8 @@ fun WriteContent(
     onDescriptionChanged: (String) -> Unit,
     paddingValues: PaddingValues,
     onSaveClicked: (Diary) -> Unit,
+    galleryState: GalleryState,
+    onImageSelected: (Uri) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -142,6 +148,16 @@ fun WriteContent(
         Column(
             verticalArrangement = Arrangement.Bottom,
         ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            GalleryUploader(
+                galleryState = galleryState,
+                onAddClicked = { },
+                onImageSelect = onImageSelected,
+                onImageClicked = {
+
+                }
+            )
+
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 modifier = Modifier
