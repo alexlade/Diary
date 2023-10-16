@@ -32,7 +32,7 @@ import com.alexlade.diaryapp.presentation.screens.write.WriteScreen
 import com.alexlade.diaryapp.presentation.screens.write.WriteViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
-import com.alexlade.diaryapp.util.RequestState
+import com.alexlade.diaryapp.model.RequestState
 import com.stevdzasan.messagebar.rememberMessageBarState
 import com.stevdzasan.onetap.rememberOneTapSignInState
 import io.realm.kotlin.mongodb.App

@@ -1,9 +1,8 @@
 package com.alexlade.diaryapp.data.repository
 
-import androidx.compose.runtime.remember
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.util.Constants.APP_ID
-import com.alexlade.diaryapp.util.RequestState
+import com.alexlade.diaryapp.model.RequestState
 import com.alexlade.diaryapp.util.toInstance
 import io.realm.kotlin.Realm
 import io.realm.kotlin.ext.query

@@ -1,7 +1,7 @@
 package com.alexlade.diaryapp.data.repository
 
 import com.alexlade.diaryapp.model.Diary
-import com.alexlade.diaryapp.util.RequestState
+import com.alexlade.diaryapp.model.RequestState
 import io.realm.kotlin.types.ObjectId
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
