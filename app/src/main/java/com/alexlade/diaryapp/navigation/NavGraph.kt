@@ -201,18 +201,21 @@ fun NavGraphBuilder.writeRoute(
             onTitleChanged = { viewModel.setTitle(title = it) },
             onDescriptionChanged = { viewModel.setDescription(description = it) },
             onBackClicked = onBackClicked,
-            onDeleteConfirmed = { viewModel.deleteDiary(
-                onSuccess = {
-                    Toast.makeText(
-                        context, "Deleted", Toast.LENGTH_LONG
-                    )
-                },
-                onError = {
-                    Toast.makeText(
-                        context, it, Toast.LENGTH_LONG
-                    )
-                }
-            )},
+            onDeleteConfirmed = {
+                viewModel.deleteDiary(
+                    onSuccess = {
+                        Toast.makeText(
+                            context, "Deleted", Toast.LENGTH_LONG
+                        )
+                    },
+                    onError = {
+                        Toast.makeText(
+                            context, it, Toast.LENGTH_LONG
+                        )
+                    }
+                )
+                onBackClicked()
+            },
             moodName = { Mood.values()[pageNumber].name },
             onSaveClicked = {
                 viewModel.upsertDiary(
