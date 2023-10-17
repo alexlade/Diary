@@ -189,6 +189,7 @@ fun NavGraphBuilder.writeRoute(
     ) {
         val viewModel: WriteViewModel = viewModel()
         val uiState = viewModel.uiState
+        val galleryState = viewModel.galleryState
         val pagerState = rememberPagerState()
         val pageNumber by remember {
             derivedStateOf {
@@ -196,7 +197,6 @@ fun NavGraphBuilder.writeRoute(
             }
         }
         val context = LocalContext.current
-        val galleryState = rememberGalleryState()
 
         LaunchedEffect(key1 = uiState, block = {
             Log.d("Diary", "${uiState.diaryId}")
@@ -238,8 +238,11 @@ fun NavGraphBuilder.writeRoute(
             onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) },
             galleryState = galleryState,
             onImageSelected = {
-                galleryState.addImage(
-                    GalleryImage(image = it)
+                val type = context.contentResolver.getType(it)?.split("/")?.last() ?: "jpg"
+                Log.d("WriteViewModel", "URI: $it")
+                viewModel.addImage(
+                    image = it,
+                    imageType = type,
                 )
             }
         )

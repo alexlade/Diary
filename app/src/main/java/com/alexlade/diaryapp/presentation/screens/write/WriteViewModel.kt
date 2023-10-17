@@ -1,5 +1,6 @@
 package com.alexlade.diaryapp.presentation.screens.write
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,10 +9,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alexlade.diaryapp.data.repository.MongoDB
 import com.alexlade.diaryapp.model.Diary
+import com.alexlade.diaryapp.model.GalleryImage
+import com.alexlade.diaryapp.model.GalleryState
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.model.RequestState
+import com.alexlade.diaryapp.model.rememberGalleryState
 import com.alexlade.diaryapp.util.toRealmInstant
+import com.google.firebase.auth.FirebaseAuth
 import io.realm.kotlin.types.ObjectId
 import io.realm.kotlin.types.RealmInstant
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +29,7 @@ class WriteViewModel(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    var galleryState = GalleryState()
     var uiState by mutableStateOf(UiState())
         private set
 
@@ -49,13 +55,13 @@ class WriteViewModel(
                     emit(RequestState.Error(Exception("Diary is already deleted.")))
                 }
                     .collect { state ->
-                    if (state is RequestState.Success) {
-                        setTitle(state.data.title)
-                        setDescription(state.data.description)
-                        setMood(Mood.valueOf(state.data.mood))
-                        setDiary(diary = state.data)
+                        if (state is RequestState.Success) {
+                            setTitle(state.data.title)
+                            setDescription(state.data.description)
+                            setMood(Mood.valueOf(state.data.mood))
+                            setDiary(diary = state.data)
+                        }
                     }
-                }
             }
         }
     }
@@ -166,6 +172,20 @@ class WriteViewModel(
 
     }
 
+    fun addImage(
+        image: Uri,
+        imageType: String,
+    ) {
+        val remoteImagePath = "images/" +
+                "${FirebaseAuth.getInstance().currentUser?.uid}/" +
+                "${image.lastPathSegment}-${System.currentTimeMillis()}.$imageType"
+        galleryState.addImage(
+            GalleryImage(
+                image = image,
+                remoteImagePath = remoteImagePath,
+            )
+        )
+    }
 
 }
 
