@@ -5,7 +5,7 @@ object Constants {
     const val CLIENT_ID = "428638838888-37euk6piim3a71pd2ikvksnd9lmf2hja.apps.googleusercontent.com"
 
     const val IMAGES_DATABASE = "images_db"
-    const val IMAGE_TO_UPLOAD_TABLE = "images_to_upload_table"
+    const val IMAGE_TO_UPLOAD_TABLE = "image_to_upload_table"
 
     const val WRITE_SCREEN_ARGUMENT_KEY = "diaryId"
 }

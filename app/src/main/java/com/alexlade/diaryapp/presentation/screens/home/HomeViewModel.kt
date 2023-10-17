@@ -23,7 +23,6 @@ class HomeViewModel : ViewModel() {
                 diaries.value = result
             }
         }
-
     }
 
 }

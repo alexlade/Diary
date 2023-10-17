@@ -38,7 +38,6 @@ fun fetchImagesFromFirebase(
     remoteImagePaths.forEachIndexed { index, image ->
         if (image.trim().isEmpty()) return@forEachIndexed
 
-
         FirebaseStorage.getInstance().reference.child(image.trim()).downloadUrl
             .addOnSuccessListener {
                 onImageDownloaded(it)

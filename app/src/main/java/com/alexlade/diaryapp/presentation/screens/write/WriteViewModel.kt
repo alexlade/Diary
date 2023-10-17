@@ -147,7 +147,7 @@ class WriteViewModel @Inject constructor(
             }
         })) {
             is RequestState.Success -> {
-                uploadImageToFirebase()
+                uploadImagesToFirebase()
                 withContext(Dispatchers.Main) { onSuccess() }
             }
 
@@ -174,7 +174,7 @@ class WriteViewModel @Inject constructor(
                 }
             })) {
             is RequestState.Success -> {
-                uploadImageToFirebase()
+                uploadImagesToFirebase()
                 withContext(Dispatchers.Main) { onSuccess() }
             }
 
@@ -224,7 +224,7 @@ class WriteViewModel @Inject constructor(
         )
     }
 
-    private fun uploadImageToFirebase() {
+    private fun uploadImagesToFirebase() {
         val storage = FirebaseStorage.getInstance().reference
         galleryState.images.forEach { image ->
             val imagePath = storage.child(image.remoteImagePath)
