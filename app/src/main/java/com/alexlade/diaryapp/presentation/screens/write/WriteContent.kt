@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.alexlade.diaryapp.model.Diary
+import com.alexlade.diaryapp.model.GalleryImage
 import com.alexlade.diaryapp.model.GalleryState
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.model.rememberGalleryState
@@ -62,6 +63,7 @@ fun WriteContent(
     onSaveClicked: (Diary) -> Unit,
     galleryState: GalleryState,
     onImageSelected: (Uri) -> Unit,
+    onImageClicked: (GalleryImage) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -122,7 +124,6 @@ fun WriteContent(
                         scrollState.animateScrollTo(Int.MAX_VALUE)
                         focusManager.moveFocus(FocusDirection.Down)
                     }
-
                 }),
                 singleLine = true,
             )
@@ -144,7 +145,6 @@ fun WriteContent(
                     focusManager.clearFocus()
                 }),
             )
-
         }
         Column(
             verticalArrangement = Arrangement.Bottom,
@@ -154,11 +154,8 @@ fun WriteContent(
                 galleryState = galleryState,
                 onAddClicked = { focusManager.clearFocus() },
                 onImageSelect = onImageSelected,
-                onImageClicked = {
-
-                }
+                onImageClicked = onImageClicked
             )
-
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 modifier = Modifier
@@ -186,7 +183,6 @@ fun WriteContent(
             ) {
                 Text(text = "Save")
             }
-
         }
     }
 }
