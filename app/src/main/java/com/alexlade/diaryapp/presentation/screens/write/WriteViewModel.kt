@@ -7,6 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alexlade.diaryapp.data.database.entity.ImageToUpload
+import com.alexlade.diaryapp.data.database.entity.ImageToUploadDao
 import com.alexlade.diaryapp.data.repository.MongoDB
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.GalleryImage
@@ -20,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.realm.kotlin.types.ObjectId
 import io.realm.kotlin.types.RealmInstant
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +30,12 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
+import javax.inject.Inject
 
-class WriteViewModel(
+@HiltViewModel
+class WriteViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
+    private val imageToUploadDao: ImageToUploadDao
 ) : ViewModel() {
 
     var galleryState = GalleryState()
@@ -223,6 +229,19 @@ class WriteViewModel(
         galleryState.images.forEach { image ->
             val imagePath = storage.child(image.remoteImagePath)
             imagePath.putFile(image.image)
+                .addOnProgressListener {
+                    it.uploadSessionUri?.let { sessionUri ->
+                        viewModelScope.launch(Dispatchers.IO) {
+                            imageToUploadDao.addImageToUpload(
+                                ImageToUpload(
+                                    remoteImagePath = image.remoteImagePath,
+                                    imageUri = image.image.toString(),
+                                    sessionUri = sessionUri.toString(),
+                                )
+                            )
+                        }
+                    }
+                }
         }
     }
 
