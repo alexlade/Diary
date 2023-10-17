@@ -8,7 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alexlade.diaryapp.data.database.entity.ImageToUpload
-import com.alexlade.diaryapp.data.database.entity.ImageToUploadDao
+import com.alexlade.diaryapp.data.database.entity.ImagesToUploadDao
 import com.alexlade.diaryapp.data.repository.MongoDB
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.model.GalleryImage
@@ -35,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WriteViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val imageToUploadDao: ImageToUploadDao
+    val imagesToUploadDao: ImagesToUploadDao
 ) : ViewModel() {
 
     var galleryState = GalleryState()
@@ -232,7 +232,7 @@ class WriteViewModel @Inject constructor(
                 .addOnProgressListener {
                     it.uploadSessionUri?.let { sessionUri ->
                         viewModelScope.launch(Dispatchers.IO) {
-                            imageToUploadDao.addImageToUpload(
+                            imagesToUploadDao.addImageToUpload(
                                 ImageToUpload(
                                     remoteImagePath = image.remoteImagePath,
                                     imageUri = image.image.toString(),
