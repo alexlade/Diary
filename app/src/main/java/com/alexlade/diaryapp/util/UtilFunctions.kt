@@ -1,5 +1,8 @@
 package com.alexlade.diaryapp.util
 
+import android.net.Uri
+import android.util.Log
+import com.google.firebase.storage.FirebaseStorage
 import io.realm.kotlin.types.RealmInstant
 import java.time.Instant
 
@@ -20,5 +23,27 @@ fun Instant.toRealmInstant(): RealmInstant {
         RealmInstant.from(sec, nano)
     } else {
         RealmInstant.from(sec+1, -1_000_000+nano)
+    }
+}
+
+fun fetchImagesFromFirebase(
+    remoteImagePaths: List<String>,
+    onImageDownloaded: (Uri) -> Unit,
+    onImageDownloadedFailed: (Exception) -> Unit = { },
+    onReadyToDisplay: () -> Unit = { },
+) {
+    remoteImagePaths.forEachIndexed { index, image ->
+        if (image.trim().isEmpty()) return@forEachIndexed
+
+
+        FirebaseStorage.getInstance().reference.child(image.trim()).downloadUrl
+            .addOnSuccessListener {
+                onImageDownloaded(it)
+                if (image.lastIndexOf(remoteImagePaths.last()) == index) {
+                    onReadyToDisplay()
+                }
+                Log.d("DownloadUrl", "$it")
+            }
+            .addOnFailureListener { onImageDownloadedFailed(it) }
     }
 }

@@ -14,9 +14,11 @@ import com.alexlade.diaryapp.model.GalleryState
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.alexlade.diaryapp.model.RequestState
-import com.alexlade.diaryapp.model.rememberGalleryState
+import com.alexlade.diaryapp.util.fetchImagesFromFirebase
 import com.alexlade.diaryapp.util.toRealmInstant
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import io.realm.kotlin.types.ObjectId
 import io.realm.kotlin.types.RealmInstant
@@ -61,10 +63,36 @@ class WriteViewModel(
                             setDescription(state.data.description)
                             setMood(Mood.valueOf(state.data.mood))
                             setDiary(diary = state.data)
+
+                            fetchImagesFromFirebase(
+                                remoteImagePaths = state.data.images,
+                                onImageDownloaded = { downloadedImage ->
+                                    galleryState.addImage(
+                                        GalleryImage(
+                                            image = downloadedImage,
+                                            remoteImagePath = extractImagePath(
+                                                downloadedImage.toString()
+                                            ),
+                                        )
+                                    )
+                                },
+                                onImageDownloadedFailed = {
+
+                                },
+                                onReadyToDisplay = {
+
+                                },
+                            )
                         }
                     }
             }
         }
+    }
+
+    private fun extractImagePath(fullImageUrl: String): String {
+        val chunks = fullImageUrl.split("%2F")
+        val imageName = chunks[2].split("?").first()
+        return "images/${Firebase.auth.currentUser?.uid}/$imageName"
     }
 
     private fun setDiary(diary: Diary) {
