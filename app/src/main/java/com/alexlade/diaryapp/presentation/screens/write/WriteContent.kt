@@ -46,6 +46,7 @@ import com.alexlade.diaryapp.model.GalleryState
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.model.rememberGalleryState
 import com.alexlade.diaryapp.presentation.components.GalleryUploader
+import io.realm.kotlin.ext.toRealmList
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -168,6 +169,9 @@ fun WriteContent(
                         val diary = Diary().apply {
                             this.title = uiState.title
                             this.description = uiState.description
+                            this.images = galleryState.images
+                                .map { it.remoteImagePath }
+                                .toRealmList()
                         }
                         onSaveClicked(diary)
                     } else {
