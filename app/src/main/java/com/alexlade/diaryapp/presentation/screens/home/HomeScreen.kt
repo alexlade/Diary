@@ -35,12 +35,15 @@ fun HomeScreen(
     onSignOutClicked: () -> Unit,
     navigateToWrite: () -> Unit,
     navigateToWriteArgs: (String) -> Unit,
-    ) {
+    onDeleteAllClicked: () -> Unit,
+) {
     var padding by remember { mutableStateOf(PaddingValues()) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     NavigationDrawer(
         drawerState = drawerState,
         onSignOutClicked = onSignOutClicked,
+        onDeleteAllClicked = onDeleteAllClicked,
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

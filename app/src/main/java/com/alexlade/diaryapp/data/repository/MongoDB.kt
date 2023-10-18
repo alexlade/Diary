@@ -72,48 +72,50 @@ object MongoDB : MongoRepository {
                 try {
                     RequestState.Success(
                         data = realm.query<Diary>(query = "_id == $0", diaryId)
-                        .find()
-                        .first()
+                            .find()
+                            .first()
                     )
-                } catch (e: Exception) { RequestState.Error(e) }
+                } catch (e: Exception) {
+                    RequestState.Error(e)
+                }
             )
         }
     }
 
-override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
-    return if (user != null) {
-        try {
-            realm.write {
-                val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
-                RequestState.Success(data = addedDiary)
+    override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
+        return if (user != null) {
+            try {
+                realm.write {
+                    val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
+                    RequestState.Success(data = addedDiary)
+                }
+            } catch (e: Exception) {
+                RequestState.Error(e)
             }
-        } catch (e: Exception) {
-            RequestState.Error(e)
+        } else {
+            RequestState.Error(UserNotAuthenticatedException())
         }
-    } else {
-        RequestState.Error(UserNotAuthenticatedException())
     }
-}
 
-override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
-    return if (user != null) {
-        realm.write {
-            query<Diary>("_id == $0", diary._id)
-                .first()
-                .find()
-                ?.let {
-                    it.title = diary.title
-                    it.description = diary.description
-                    it.mood = diary.mood
-                    it.images = diary.images
-                    it.date = diary.date
-                    RequestState.Success(data = it)
-                } ?: RequestState.Error(Exception("Queried diary does not exist"))
+    override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
+        return if (user != null) {
+            realm.write {
+                query<Diary>("_id == $0", diary._id)
+                    .first()
+                    .find()
+                    ?.let {
+                        it.title = diary.title
+                        it.description = diary.description
+                        it.mood = diary.mood
+                        it.images = diary.images
+                        it.date = diary.date
+                        RequestState.Success(data = it)
+                    } ?: RequestState.Error(Exception("Queried diary does not exist"))
+            }
+        } else {
+            RequestState.Error(UserNotAuthenticatedException())
         }
-    } else {
-        RequestState.Error(UserNotAuthenticatedException())
     }
-}
 
     override suspend fun deleteDiary(id: ObjectId): RequestState<Diary> {
         return user?.let { user ->
@@ -126,6 +128,20 @@ override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
                             delete(diary)
                             RequestState.Success(data = diary)
                         } ?: RequestState.Error(Exception("No diary found"))
+                } catch (e: Exception) {
+                    RequestState.Error(e)
+                }
+            }
+        } ?: RequestState.Error(UserNotAuthenticatedException())
+    }
+
+    override suspend fun deleteAllDiaries(): RequestState<Boolean> {
+        return user?.let { user ->
+            realm.write {
+                val diaries = this.query<Diary>("ownerId == $0", user.identity).find()
+                try {
+                    delete(diaries)
+                    RequestState.Success(data = true)
                 } catch (e: Exception) {
                     RequestState.Error(e)
                 }

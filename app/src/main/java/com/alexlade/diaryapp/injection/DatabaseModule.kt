@@ -2,6 +2,7 @@ package com.alexlade.diaryapp.injection
 
 import android.content.Context
 import androidx.room.Room
+import com.alexlade.diaryapp.connectivity.NetworkConnectivityObserver
 import com.alexlade.diaryapp.data.database.entity.ImagesDatabase
 import com.alexlade.diaryapp.util.Constants.IMAGES_DATABASE
 import dagger.Module
@@ -13,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class DatabaseModule {
+object DatabaseModule {
     @Provides
     @Singleton
     fun providesDatabase(
@@ -40,5 +41,11 @@ class DatabaseModule {
     fun providesSecondDao(
         database: ImagesDatabase,
     ) = database.imagesToDeleteDao()
+
+    @Singleton
+    @Provides
+    fun providesNetworkConnectivityObserver(
+        @ApplicationContext context: Context,
+    ) = NetworkConnectivityObserver(context = context)
 
 }

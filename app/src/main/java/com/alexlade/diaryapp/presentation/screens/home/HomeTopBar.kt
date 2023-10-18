@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -67,6 +68,7 @@ fun HomeTopBar(
 fun NavigationDrawer(
     drawerState: DrawerState,
     onSignOutClicked: () -> Unit,
+    onDeleteAllClicked: () -> Unit,
     content: @Composable () -> Unit
 ) {
     ModalNavigationDrawer(
@@ -100,6 +102,20 @@ fun NavigationDrawer(
                     },
                     selected = false,
                     onClick = onSignOutClicked,
+                )
+                NavigationDrawerItem(
+                    label = {
+                        Row(modifier = Modifier.padding(horizontal = 12.dp)) {
+                            Image(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete All Icon",
+                            )
+                            Spacer(modifier = Modifier.padding(horizontal = 12.dp))
+                            Text(text = "Delete All Diaries", color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    },
+                    selected = false,
+                    onClick = onDeleteAllClicked,
                 )
             }
 

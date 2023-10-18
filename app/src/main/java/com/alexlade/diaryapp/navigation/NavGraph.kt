@@ -133,11 +133,13 @@ fun NavGraphBuilder.homeRoute(
 
     ) {
     composable(route = Screen.Home.route) {
-        val viewModel: HomeViewModel = viewModel()
+        val viewModel: HomeViewModel = hiltViewModel()
         val diaries by viewModel.diaries
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         var signOutDialogOpen by remember { mutableStateOf(false) }
+        var deleteAllDialogOpen by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
+        val context = LocalContext.current
 
         LaunchedEffect(key1 = diaries) {
             if (diaries !is RequestState.Loading) {
@@ -156,6 +158,9 @@ fun NavGraphBuilder.homeRoute(
             onSignOutClicked = { signOutDialogOpen = true },
             navigateToWrite = navigateToWrite,
             navigateToWriteArgs = navigateToWriteArgs,
+            onDeleteAllClicked = {
+                deleteAllDialogOpen = true
+            }
         )
 
         DisplayAlertDialog(
@@ -171,6 +176,37 @@ fun NavGraphBuilder.homeRoute(
                     val user = App.create(APP_ID).currentUser
                     user?.logOut()
                 }
+            }
+        )
+
+        DisplayAlertDialog(
+            title = "Delete All Diaries",
+            message = "Are you sure you want to delete all your diaries?",
+            dialogOpened = deleteAllDialogOpen,
+            onCloseDialog = { deleteAllDialogOpen = false },
+            onYesClicked = {
+                viewModel.deleteAllDiaries(
+                    onSuccess = {
+                        Toast.makeText(
+                            context,
+                            "All diaries were deleted.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        scope.launch() {
+                            drawerState.close()
+                        }
+                    },
+                    onError = {
+                        Toast.makeText(
+                            context,
+                            it.message,
+                            Toast.LENGTH_LONG
+                        ).show()
+                        scope.launch() {
+                            drawerState.close()
+                        }
+                    },
+                )
             }
         )
     }
