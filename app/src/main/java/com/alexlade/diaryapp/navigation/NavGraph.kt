@@ -160,6 +160,13 @@ fun NavGraphBuilder.homeRoute(
             navigateToWriteArgs = navigateToWriteArgs,
             onDeleteAllClicked = {
                 deleteAllDialogOpen = true
+            },
+            dateIsSelected = viewModel.dateIsSelected,
+            onDateSelected = {
+                viewModel.getDiaries(it)
+            },
+            onDateReset = {
+                viewModel.getDiaries()
             }
         )
 

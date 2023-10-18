@@ -25,6 +25,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.LayoutDirection
 import com.alexlade.diaryapp.data.repository.Diaries
 import com.alexlade.diaryapp.model.RequestState
+import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +37,9 @@ fun HomeScreen(
     navigateToWrite: () -> Unit,
     navigateToWriteArgs: (String) -> Unit,
     onDeleteAllClicked: () -> Unit,
+    dateIsSelected: Boolean,
+    onDateSelected: (ZonedDateTime) -> Unit,
+    onDateReset: () -> Unit,
 ) {
     var padding by remember { mutableStateOf(PaddingValues()) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -48,7 +52,13 @@ fun HomeScreen(
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                HomeTopBar(scrollBehavior = scrollBehavior, onMenuClicked = onMenuClicked)
+                HomeTopBar(
+                    scrollBehavior = scrollBehavior,
+                    onMenuClicked = onMenuClicked,
+                    dateIsSelected = dateIsSelected,
+                    onDateSelected = onDateSelected,
+                    onDateReset = onDateReset,
+                )
             },
             floatingActionButton = {
                 FloatingActionButton(
