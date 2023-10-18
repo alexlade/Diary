@@ -7,12 +7,15 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.alexlade.diaryapp.data.database.entity.ImageToDelete
+import com.alexlade.diaryapp.data.database.entity.ImageToDeleteDao
 import com.alexlade.diaryapp.data.database.entity.ImageToUpload
 import com.alexlade.diaryapp.data.database.entity.ImagesToUploadDao
 import com.alexlade.diaryapp.navigation.Screen
 import com.alexlade.diaryapp.navigation.SetupNavGraph
 import com.alexlade.diaryapp.ui.theme.DiaryAppTheme
 import com.alexlade.diaryapp.util.Constants.APP_ID
+import com.alexlade.diaryapp.util.retryDeletingImageFromFirebase
 import com.alexlade.diaryapp.util.retryUploadingImageToFirebase
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +30,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var imagesToUploadDao: ImagesToUploadDao
+
+    @Inject
+    lateinit var imageToDeleteDao: ImageToDeleteDao
 
     private var keepSplashOpened = true
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +54,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-        cleanupCheck(lifecycleScope, imagesToUploadDao)
+        cleanupCheck(lifecycleScope, imagesToUploadDao, imageToDeleteDao)
     }
 
     private fun getStartDestination(): String {
@@ -63,6 +69,7 @@ class MainActivity : ComponentActivity() {
     private fun cleanupCheck(
         scope: CoroutineScope,
         imagesToUploadDao: ImagesToUploadDao,
+        imageToDeleteDao: ImageToDeleteDao,
     ) {
         scope.launch(Dispatchers.IO) {
             val result = imagesToUploadDao.getAllImages()
@@ -75,7 +82,18 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 )
-
+            }
+            val result2 = imageToDeleteDao.getAllImages()
+            result2.forEach { imageToDelete ->
+                retryDeletingImageFromFirebase(
+                    imageToDelete = imageToDelete,
+                    onSuccess = {
+                        scope.launch(Dispatchers.IO) {
+                            Dispatchers.IO
+                            imageToDeleteDao.cleanupImage(imageToDelete.id)
+                        }
+                    }
+                )
             }
         }
     }

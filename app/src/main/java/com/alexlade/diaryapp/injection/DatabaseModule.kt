@@ -32,4 +32,10 @@ class DatabaseModule {
         database: ImagesDatabase,
     ) = database.imagesToUploadDao()
 
+    @Provides
+    @Singleton
+    fun providesSecondDao(
+        database: ImagesDatabase,
+    ) = database.imagesToDeleteDao()
+
 }

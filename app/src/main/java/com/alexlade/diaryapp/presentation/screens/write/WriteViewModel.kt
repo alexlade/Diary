@@ -7,6 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alexlade.diaryapp.data.database.entity.ImageToDelete
+import com.alexlade.diaryapp.data.database.entity.ImageToDeleteDao
 import com.alexlade.diaryapp.data.database.entity.ImageToUpload
 import com.alexlade.diaryapp.data.database.entity.ImagesToUploadDao
 import com.alexlade.diaryapp.data.repository.MongoDB
@@ -35,7 +37,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WriteViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    val imagesToUploadDao: ImagesToUploadDao
+    private val imagesToUploadDao: ImagesToUploadDao,
+    private val imagesToDeleteDao: ImageToDeleteDao,
 ) : ViewModel() {
 
     var galleryState = GalleryState()
@@ -255,6 +258,15 @@ class WriteViewModel @Inject constructor(
         } ?: run {
             galleryState.imagesToDelete.forEach { image ->
                 storage.child(image.remoteImagePath).delete()
+                    .addOnFailureListener {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            imagesToDeleteDao.addImageToDelete(
+                                ImageToDelete(
+                                    remoteImagePath = image.remoteImagePath
+                                )
+                            )
+                        }
+                    }
             }
         }
     }
