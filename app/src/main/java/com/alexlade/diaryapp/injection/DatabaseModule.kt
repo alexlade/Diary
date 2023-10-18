@@ -19,11 +19,14 @@ class DatabaseModule {
     fun providesDatabase(
         @ApplicationContext context: Context,
     ): ImagesDatabase {
-        return Room.databaseBuilder(
-            context,
-            ImagesDatabase::class.java,
-            IMAGES_DATABASE
-        ).build()
+        return Room
+            .databaseBuilder(
+                context,
+                ImagesDatabase::class.java,
+                IMAGES_DATABASE
+            )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
