@@ -6,7 +6,7 @@ plugins {
     id("io.realm.kotlin")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
-    // id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -87,7 +87,7 @@ dependencies {
 
     // room
     implementation("androidx.room:room-runtime:2.4.3")
-    findKaptConfiguration("androidx.room:room-compiler:2.4.3")
+    kapt("androidx.room:room-compiler:2.4.3")
     implementation("androidx.room:room-ktx:2.4.3")
 
     // runtime compose

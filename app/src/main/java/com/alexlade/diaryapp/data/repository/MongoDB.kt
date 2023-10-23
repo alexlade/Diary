@@ -1,9 +1,8 @@
 package com.alexlade.diaryapp.data.repository
 
-import androidx.compose.runtime.remember
 import com.alexlade.diaryapp.model.Diary
 import com.alexlade.diaryapp.util.Constants.APP_ID
-import com.alexlade.diaryapp.util.RequestState
+import com.alexlade.diaryapp.model.RequestState
 import com.alexlade.diaryapp.util.toInstance
 import io.realm.kotlin.Realm
 import io.realm.kotlin.ext.query
@@ -12,10 +11,12 @@ import io.realm.kotlin.mongodb.App
 import io.realm.kotlin.mongodb.sync.SyncConfiguration
 import io.realm.kotlin.query.Sort
 import io.realm.kotlin.types.ObjectId
+import io.realm.kotlin.types.RealmInstant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.time.ZoneId
+import java.time.ZonedDateTime
 
 object MongoDB : MongoRepository {
 
@@ -66,6 +67,29 @@ object MongoDB : MongoRepository {
         }
     }
 
+    override fun getFilteredDairies(zonedDateTime: ZonedDateTime): Flow<Diaries> {
+        return if (user == null) {
+            flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
+        } else {
+            try {
+                realm.query<Diary>(
+                    "ownerId == $0 AND date < $1 AND date > $2",
+                    user.identity,
+                    RealmInstant.from(zonedDateTime.plusDays(1).toInstant().epochSecond, 0),
+                    RealmInstant.from(zonedDateTime.plusDays(1).toInstant().epochSecond, 0),
+                ).asFlow().map { result ->
+                    RequestState.Success(
+                        data = result.list.groupBy {
+                            it.date.toInstance().atZone(ZoneId.systemDefault()).toLocalDate()
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                flow { emit(RequestState.Error(e)) }
+            }
+        }
+    }
+
     override fun getSelectedDairy(diaryId: ObjectId): Flow<RequestState<Diary>> {
         if (user == null) flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
         return flow {
@@ -73,48 +97,50 @@ object MongoDB : MongoRepository {
                 try {
                     RequestState.Success(
                         data = realm.query<Diary>(query = "_id == $0", diaryId)
-                        .find()
-                        .first()
+                            .find()
+                            .first()
                     )
-                } catch (e: Exception) { RequestState.Error(e) }
+                } catch (e: Exception) {
+                    RequestState.Error(e)
+                }
             )
         }
     }
 
-override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
-    return if (user != null) {
-        try {
-            realm.write {
-                val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
-                RequestState.Success(data = addedDiary)
+    override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
+        return if (user != null) {
+            try {
+                realm.write {
+                    val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
+                    RequestState.Success(data = addedDiary)
+                }
+            } catch (e: Exception) {
+                RequestState.Error(e)
             }
-        } catch (e: Exception) {
-            RequestState.Error(e)
+        } else {
+            RequestState.Error(UserNotAuthenticatedException())
         }
-    } else {
-        RequestState.Error(UserNotAuthenticatedException())
     }
-}
 
-override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
-    return if (user != null) {
-        realm.write {
-            query<Diary>("_id == $0", diary._id)
-                .first()
-                .find()
-                ?.let {
-                    it.title = diary.title
-                    it.description = diary.description
-                    it.mood = diary.mood
-                    it.images = diary.images
-                    it.date = diary.date
-                    RequestState.Success(data = it)
-                } ?: RequestState.Error(Exception("Queried diary does not exist"))
+    override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
+        return if (user != null) {
+            realm.write {
+                query<Diary>("_id == $0", diary._id)
+                    .first()
+                    .find()
+                    ?.let {
+                        it.title = diary.title
+                        it.description = diary.description
+                        it.mood = diary.mood
+                        it.images = diary.images
+                        it.date = diary.date
+                        RequestState.Success(data = it)
+                    } ?: RequestState.Error(Exception("Queried diary does not exist"))
+            }
+        } else {
+            RequestState.Error(UserNotAuthenticatedException())
         }
-    } else {
-        RequestState.Error(UserNotAuthenticatedException())
     }
-}
 
     override suspend fun deleteDiary(id: ObjectId): RequestState<Diary> {
         return user?.let { user ->
@@ -127,6 +153,20 @@ override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
                             delete(diary)
                             RequestState.Success(data = diary)
                         } ?: RequestState.Error(Exception("No diary found"))
+                } catch (e: Exception) {
+                    RequestState.Error(e)
+                }
+            }
+        } ?: RequestState.Error(UserNotAuthenticatedException())
+    }
+
+    override suspend fun deleteAllDiaries(): RequestState<Boolean> {
+        return user?.let { user ->
+            realm.write {
+                val diaries = this.query<Diary>("ownerId == $0", user.identity).find()
+                try {
+                    delete(diaries)
+                    RequestState.Success(data = true)
                 } catch (e: Exception) {
                     RequestState.Error(e)
                 }

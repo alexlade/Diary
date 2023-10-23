@@ -1,13 +1,12 @@
 package com.alexlade.diaryapp.presentation.screens.write
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -36,12 +35,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.alexlade.diaryapp.model.Diary
+import com.alexlade.diaryapp.model.GalleryImage
+import com.alexlade.diaryapp.model.GalleryState
 import com.alexlade.diaryapp.model.Mood
+import com.alexlade.diaryapp.presentation.components.GalleryUploader
+import io.realm.kotlin.ext.toRealmList
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -55,6 +57,9 @@ fun WriteContent(
     onDescriptionChanged: (String) -> Unit,
     paddingValues: PaddingValues,
     onSaveClicked: (Diary) -> Unit,
+    galleryState: GalleryState,
+    onImageSelected: (Uri) -> Unit,
+    onImageClicked: (GalleryImage) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -115,7 +120,6 @@ fun WriteContent(
                         scrollState.animateScrollTo(Int.MAX_VALUE)
                         focusManager.moveFocus(FocusDirection.Down)
                     }
-
                 }),
                 singleLine = true,
             )
@@ -137,11 +141,17 @@ fun WriteContent(
                     focusManager.clearFocus()
                 }),
             )
-
         }
         Column(
             verticalArrangement = Arrangement.Bottom,
         ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            GalleryUploader(
+                galleryState = galleryState,
+                onAddClicked = { focusManager.clearFocus() },
+                onImageSelect = onImageSelected,
+                onImageClicked = onImageClicked
+            )
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 modifier = Modifier
@@ -152,6 +162,9 @@ fun WriteContent(
                         val diary = Diary().apply {
                             this.title = uiState.title
                             this.description = uiState.description
+                            this.images = galleryState.images
+                                .map { it.remoteImagePath }
+                                .toRealmList()
                         }
                         onSaveClicked(diary)
                     } else {
@@ -166,7 +179,6 @@ fun WriteContent(
             ) {
                 Text(text = "Save")
             }
-
         }
     }
 }

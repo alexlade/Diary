@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -22,6 +23,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.alexlade.diaryapp.model.GalleryImage
 import com.alexlade.diaryapp.model.Mood
 import com.alexlade.diaryapp.presentation.components.DisplayAlertDialog
 import com.alexlade.diaryapp.presentation.screens.home.HomeScreen
@@ -32,7 +34,8 @@ import com.alexlade.diaryapp.presentation.screens.write.WriteScreen
 import com.alexlade.diaryapp.presentation.screens.write.WriteViewModel
 import com.alexlade.diaryapp.util.Constants.APP_ID
 import com.alexlade.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
-import com.alexlade.diaryapp.util.RequestState
+import com.alexlade.diaryapp.model.RequestState
+import com.alexlade.diaryapp.model.rememberGalleryState
 import com.stevdzasan.messagebar.rememberMessageBarState
 import com.stevdzasan.onetap.rememberOneTapSignInState
 import io.realm.kotlin.mongodb.App
@@ -96,7 +99,7 @@ fun NavGraphBuilder.loginRoute(
                 oneTapState.open()
                 viewModel.setLoadingState(true)
             },
-            onTokenIdReceived = { tokenId ->
+            onSuccessfulFirebaseLogin = { tokenId ->
                 viewModel.signInWithMongoAtlas(
                     tokenId = tokenId,
                     onSuccess = {
@@ -109,6 +112,10 @@ fun NavGraphBuilder.loginRoute(
                     }
                 )
 
+            },
+            onFailureFirebaseLogin = {
+                messageBarState.addError(it)
+                viewModel.setLoadingState(false)
             },
             onDialogDismiss = { msg ->
                 messageBarState.addError(Exception(msg))
@@ -126,11 +133,13 @@ fun NavGraphBuilder.homeRoute(
 
     ) {
     composable(route = Screen.Home.route) {
-        val viewModel: HomeViewModel = viewModel()
+        val viewModel: HomeViewModel = hiltViewModel()
         val diaries by viewModel.diaries
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         var signOutDialogOpen by remember { mutableStateOf(false) }
+        var deleteAllDialogOpen by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
+        val context = LocalContext.current
 
         LaunchedEffect(key1 = diaries) {
             if (diaries !is RequestState.Loading) {
@@ -149,6 +158,16 @@ fun NavGraphBuilder.homeRoute(
             onSignOutClicked = { signOutDialogOpen = true },
             navigateToWrite = navigateToWrite,
             navigateToWriteArgs = navigateToWriteArgs,
+            onDeleteAllClicked = {
+                deleteAllDialogOpen = true
+            },
+            dateIsSelected = viewModel.dateIsSelected,
+            onDateSelected = {
+                viewModel.getDiaries(it)
+            },
+            onDateReset = {
+                viewModel.getDiaries()
+            }
         )
 
         DisplayAlertDialog(
@@ -166,6 +185,37 @@ fun NavGraphBuilder.homeRoute(
                 }
             }
         )
+
+        DisplayAlertDialog(
+            title = "Delete All Diaries",
+            message = "Are you sure you want to delete all your diaries?",
+            dialogOpened = deleteAllDialogOpen,
+            onCloseDialog = { deleteAllDialogOpen = false },
+            onYesClicked = {
+                viewModel.deleteAllDiaries(
+                    onSuccess = {
+                        Toast.makeText(
+                            context,
+                            "All diaries were deleted.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        scope.launch() {
+                            drawerState.close()
+                        }
+                    },
+                    onError = {
+                        Toast.makeText(
+                            context,
+                            it.message,
+                            Toast.LENGTH_LONG
+                        ).show()
+                        scope.launch() {
+                            drawerState.close()
+                        }
+                    },
+                )
+            }
+        )
     }
 }
 
@@ -181,8 +231,9 @@ fun NavGraphBuilder.writeRoute(
             defaultValue = null
         })
     ) {
-        val viewModel: WriteViewModel = viewModel()
+        val viewModel: WriteViewModel = hiltViewModel()
         val uiState = viewModel.uiState
+        val galleryState = viewModel.galleryState
         val pagerState = rememberPagerState()
         val pageNumber by remember {
             derivedStateOf {
@@ -201,18 +252,21 @@ fun NavGraphBuilder.writeRoute(
             onTitleChanged = { viewModel.setTitle(title = it) },
             onDescriptionChanged = { viewModel.setDescription(description = it) },
             onBackClicked = onBackClicked,
-            onDeleteConfirmed = { viewModel.deleteDiary(
-                onSuccess = {
-                    Toast.makeText(
-                        context, "Deleted", Toast.LENGTH_LONG
-                    )
-                },
-                onError = {
-                    Toast.makeText(
-                        context, it, Toast.LENGTH_LONG
-                    )
-                }
-            )},
+            onDeleteConfirmed = {
+                viewModel.deleteDiary(
+                    onSuccess = {
+                        Toast.makeText(
+                            context, "Deleted", Toast.LENGTH_LONG
+                        )
+                    },
+                    onError = {
+                        Toast.makeText(
+                            context, it, Toast.LENGTH_LONG
+                        )
+                    }
+                )
+                onBackClicked()
+            },
             moodName = { Mood.values()[pageNumber].name },
             onSaveClicked = {
                 viewModel.upsertDiary(
@@ -225,7 +279,17 @@ fun NavGraphBuilder.writeRoute(
                     }
                 )
             },
-            onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) }
+            onDateTimeUpdated = { viewModel.setDateTime(zonedDateTime = it) },
+            galleryState = galleryState,
+            onImageSelected = {
+                val type = context.contentResolver.getType(it)?.split("/")?.last() ?: "jpg"
+                Log.d("WriteViewModel", "URI: $it")
+                viewModel.addImage(
+                    image = it,
+                    imageType = type,
+                )
+            },
+            onImageDeleteClicked = { galleryState.removeImage(it) }
         )
     }
 }
