@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.alexlade.diaryapp"
-    compileSdk = 33
+    compileSdk = ProjectConfig.compileSdk
 
     kapt {
         correctErrorTypes = true
@@ -19,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId = "com.alexlade.diaryapp"
-        minSdk = 24
-        targetSdk = 33
+        minSdk = ProjectConfig.minSdk
+        targetSdk = ProjectConfig.targetSdk
         versionCode = 1
         versionName = "1.0"
 
@@ -51,7 +51,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.1"
+        kotlinCompilerExtensionVersion = ProjectConfig.extensionVersion
     }
     packaging {
         resources {
@@ -79,7 +79,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // compose navigation
-    implementation("androidx.navigation:navigation-compose:2.5.3")
+    implementation(libs.navigation.compose)
 
     //firebase
     implementation("com.google.firebase:firebase-auth-ktx:21.1.0")
